@@ -9,12 +9,14 @@ use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
 {
-    
-    use HasFactory, Notifiable;
+
+    use HasFactory;
+    use Notifiable;
 
 
     protected $fillable = [
         'name',
+        'username',
         'email',
         'password',
     ];
@@ -37,5 +39,10 @@ class User extends Authenticatable
     public function role()
     {
         return $this->belongsTo(Role::class, 'role_id');
+    }
+
+    public function isAdmin()
+    {
+        return $this->role_id === 2;
     }
 }
