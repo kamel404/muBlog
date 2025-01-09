@@ -30,14 +30,9 @@ class User extends Authenticatable
         'remember_token',
     ];
 
-
-    protected function casts(): array
-    {
-        return [
-            // 'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-        ];
-    }
+    protected $casts = [
+        'password' => 'hashed',
+    ];
 
     public function role()
     {
@@ -54,13 +49,14 @@ class User extends Authenticatable
         return $this->hasMany(Comment::class, 'user_id');
     }
 
-    public function likes() {
+    public function likes()
+    {
         return $this->hasMany(Like::class, 'user_id');
     }
 
     public function isAdmin()
     {
-        return $this->role_id === 2;
+        return $this->role->name === 'Admin';
     }
 
     public function hasRole($role)
