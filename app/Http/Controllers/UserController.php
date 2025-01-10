@@ -4,6 +4,9 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\User;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Validator;
 
 class UserController extends Controller
 {
@@ -25,23 +28,54 @@ class UserController extends Controller
         return response()->json($user);
     }
 
-    /**
-     * Update a user (e.g., promote to admin).
-     */
-    public function update(Request $request, $id)
+    // Update User (for user and admin)
+    public function update(Request $request)
+    {
+
+        if (!Auth::check()) {
+            Log::error('User is not authenticated.');
+            return response()->json(['message' => 'Unauthenticated'], 401);
+        }
+        $user = Auth::user();
+
+        $validator = Validator::make($request->all(), [
+            'name' => 'nullable|string|max:255',
+            'email' => 'nullable|string|email|max:255|unique:users,email,' . $user->id,
+            'password' => 'nullable|string|min:8|confirmed',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 422);
+        }
+
+        if ($request->has('name')) {
+            $user->name = $request->input('name');
+        }
+
+        if ($request->has('email')) {
+            $user->email = $request->input('email');
+        }
+
+        if ($request->has('password')) {
+            $user->password = bcrypt($request->input('password'));
+        }
+
+        $user->save();
+
+        return response()->json(['message' => 'Profile updated successfully', 'user' => $user]);
+    }
+
+    public function updateRole(Request $request, $id)
     {
         $request->validate([
-            'name' => 'string|max:255',
-            'username' => 'string|unique:users,username|max:255',
-            'email' => 'string|email|unique:users',
             'role_id' => 'integer|exists:roles,id',
         ]);
 
         $user = User::findOrFail($id);
-        $user->update($request->only(['name', 'username', 'email', 'role_id']));
+        $user->update($request->only(['role_id']));
 
         return response()->json([
-            'message' => 'User updated successfully!',
+            'message' => 'User role updated successfully!',
             'user' => $user,
         ]);
     }
