@@ -5,6 +5,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\CommentController;
+use App\Http\Controllers\LikeController;
 
 // Users (admin access only)
 Route::middleware(['auth:sanctum', 'role:Admin'])->group(function () {
@@ -28,6 +29,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/posts/{postId}/comments', [CommentController::class, 'store']);
     Route::put('/comments/{id}', [CommentController::class, 'update']);
     Route::delete('/comments/{id}', [CommentController::class, 'destroy']);
+
+    // Likes
+    Route::post('/posts/{postId}/like', [LikeController::class, 'store']);
+    Route::delete('/posts/{postId}/like', [LikeController::class, 'destroy']);
+    Route::get('/posts/{postId}/likes', [LikeController::class, 'count']);
 });
 
 // Authentication
