@@ -7,6 +7,33 @@ use App\Http\Controllers\PostController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\LikeController;
 
+// Public routes
+Route::post('/register', [AuthController::class, 'register']);
+Route::post('/login', [AuthController::class, 'login']);
+
+// Protected routes
+Route::middleware('auth:sanctum')->group(function () {
+    // User routes
+    Route::get('/user', [UserController::class, 'profile']);
+    Route::put('/user', [UserController::class, 'update']);
+    Route::post('/logout', [AuthController::class, 'logout']);
+
+    // Posts routes
+    Route::get('/posts', [PostController::class, 'index']);
+    Route::post('/posts', [PostController::class, 'store']);
+    Route::get('/posts/{id}', [PostController::class, 'show']);
+    Route::put('/posts/{id}', [PostController::class, 'update']);
+    Route::delete('/posts/{id}', [PostController::class, 'destroy']);
+    Route::get('/user/posts', [PostController::class, 'userPosts']);
+
+    // Comments routes
+    Route::get('/posts/{postId}/comments', [CommentController::class, 'index']);
+    Route::post('/posts/{postId}/comments', [CommentController::class, 'store']);
+
+    // Likes routes
+    Route::post('/posts/{postId}/like', [LikeController::class, 'toggle']);
+});
+
 // Users (admin access only)
 Route::middleware(['auth:sanctum', 'role:Admin'])->group(function () {
     Route::get('/users', [UserController::class, 'index']);
@@ -14,30 +41,3 @@ Route::middleware(['auth:sanctum', 'role:Admin'])->group(function () {
     Route::delete('/users/{id}', [UserController::class, 'destroy']);
     Route::put('/users/{id}/update-role', [UserController::class, 'updateRole']);
 });
-
-Route::middleware('auth:sanctum')->group(function () {
-
-    // Posts
-    Route::get('/posts', [PostController::class, 'index']);
-    Route::get('/posts/{id}', [PostController::class, 'show']);
-    Route::post('/posts', [PostController::class, 'store']);
-    Route::put('/posts/{id}', [PostController::class, 'update']);
-    Route::delete('/posts/{id}', [PostController::class, 'destroy']);
-
-    // Comments
-    Route::get('/posts/{postId}/comments', [CommentController::class, 'index']);
-    Route::post('/posts/{postId}/comments', [CommentController::class, 'store']);
-    Route::put('/comments/{id}', [CommentController::class, 'update']);
-    Route::delete('/comments/{id}', [CommentController::class, 'destroy']);
-
-    // Likes
-    Route::post('/posts/{postId}/like', [LikeController::class, 'store']);
-    Route::delete('/posts/{postId}/like', [LikeController::class, 'destroy']);
-    Route::get('/posts/{postId}/likes', [LikeController::class, 'count']);
-});
-
-// Authentication
-Route::post('/register', [AuthController::class, 'register']);
-Route::post('/login', [AuthController::class, 'login']);
-Route::middleware('auth:sanctum')->post('/logout', [AuthController::class, 'logout']);
-Route::middleware('auth:sanctum')->put('/users', [UserController::class, 'update']);
