@@ -10,14 +10,14 @@ class Post extends Model
 {
     use HasFactory;
 
-
     protected $fillable = [
-        'user_id',
-        'image',
         'title',
         'body',
+        'image',
+        'user_id'
     ];
 
+    protected $with = ['user'];
 
     public function likes()
     {
@@ -26,7 +26,7 @@ class Post extends Model
 
     public function comments()
     {
-        return $this->hasMany(Comment::class, 'post_id');
+        return $this->hasMany(Comment::class);
     }
 
     public function userLikes()
