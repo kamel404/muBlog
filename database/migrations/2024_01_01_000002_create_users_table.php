@@ -6,23 +6,24 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-
-    public function up(): void
+    public function up()
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->string('username')->unique() ->nullable() ->default('NewUser');
+            $table->string('username')->unique()->nullable()->default('NewUser');
             $table->string('email')->unique();
+            $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
-            $table->foreignId('role_id')->constrained('roles')->onDelete('cascade');
+            $table->unsignedBigInteger('role_id')->default(1); // Default to regular user role
             $table->rememberToken();
             $table->timestamps();
+
+            $table->foreign('role_id')->references('id')->on('roles');
         });
     }
 
-
-    public function down(): void
+    public function down()
     {
         Schema::dropIfExists('users');
     }
