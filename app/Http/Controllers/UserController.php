@@ -28,41 +28,48 @@ class UserController extends Controller
         return response()->json($user);
     }
 
-    // Update User (for user and admin)
+    public function profile(Request $request)
+    {
+        $user = $request->user();
+        
+        return response()->json([
+            'id' => $user->id,
+            'name' => $user->name,
+            'username' => $user->username,
+            'email' => $user->email,
+            'role_id' => $user->role_id
+        ]);
+    }
+
     public function update(Request $request)
     {
-
-        if (!Auth::check()) {
-            Log::error('User is not authenticated.');
-            return response()->json(['message' => 'Unauthenticated'], 401);
-        }
-        $user = Auth::user();
-
-        $validator = Validator::make($request->all(), [
-            'name' => 'nullable|string|max:255',
-            'email' => 'nullable|string|email|max:255|unique:users,email,' . $user->id,
-            'password' => 'nullable|string|min:8|confirmed',
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => [
+                'required',
+                'string',
+                'email',
+                'max:255',
+                'unique:users,email,'.$request->user()->id,
+                'regex:/^[a-zA-Z0-9._%+-]+@mu\.edu\.lb$/' // Ensure email is from mu.edu.lb
+            ],
+        ], [
+            'email.regex' => 'The email must be a valid MU email address (@mu.edu.lb)'
         ]);
 
-        if ($validator->fails()) {
-            return response()->json($validator->errors(), 422);
+        $user = $request->user();
+        $data = $request->only(['name', 'email']);
+        
+        if ($request->filled('password')) {
+            $data['password'] = bcrypt($request->password);
         }
 
-        if ($request->has('name')) {
-            $user->name = $request->input('name');
-        }
+        $user->update($data);
 
-        if ($request->has('email')) {
-            $user->email = $request->input('email');
-        }
-
-        if ($request->has('password')) {
-            $user->password = bcrypt($request->input('password'));
-        }
-
-        $user->save();
-
-        return response()->json(['message' => 'Profile updated successfully', 'user' => $user]);
+        return response()->json([
+            'message' => 'Profile updated successfully',
+            'user' => $user
+        ]);
     }
 
     public function updateRole(Request $request, $id)

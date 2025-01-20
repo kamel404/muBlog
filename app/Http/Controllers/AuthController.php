@@ -6,7 +6,6 @@ use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
-use Illuminate\Support\Facades\Validator;
 
 class AuthController extends Controller
 {
@@ -15,50 +14,41 @@ class AuthController extends Controller
      */
     public function register(Request $request)
     {
-        $validator = Validator::make($request->all(), [
+        $request->validate([
             'name' => 'required|string|max:255',
+            'username' => 'required|string|max:255|unique:users',
             'email' => [
                 'required',
                 'string',
                 'email',
                 'max:255',
-                'unique:users,email',
-                function ($attribute, $value, $fail) {
-                    // Restrict registration to university domain emails
-                    $allowedDomain = 'mu.edu.lb';
-                    if (!str_ends_with($value, '@' . $allowedDomain)) {
-                        $fail('The email must be from Al Maaref University.');
-                    }
-                }
+                'unique:users',
+                'regex:/^[a-zA-Z0-9._%+-]+@mu\.edu\.lb$/' // Ensure email is from mu.edu.lb
             ],
-            'password' => 'required|string|min:8',
+            'password' => 'required|string|min:8|confirmed',
+        ], [
+            'email.regex' => 'The email must be a valid MU email address (@mu.edu.lb)'
         ]);
 
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
-        }
+        // Check if it's an admin email
+        $adminEmail = env('ADMIN_EMAIL', '10121641@mu.edu.lb');
+        $roleId = ($request->email === $adminEmail) ? 2 : 1; // 2 for Admin, 1 for User
 
-        $adminEmail = env('ADMIN_EMAIL','10121641@mu.edu.lb');
-
-        $defaultRoleId = ($request->email === $adminEmail) ? 1 : 2;
-
-        // Create the user
         $user = User::create([
             'name' => $request->name,
+            'username' => $request->username,
             'email' => $request->email,
             'password' => Hash::make($request->password),
-            'role_id' => $defaultRoleId,
+            'role_id' => $roleId,
         ]);
 
-        $user->save();
-
-        // Generate token
+        // Create token
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
             'message' => 'Registration successful',
-            'user' => $user,
             'token' => $token,
+            'user' => $user
         ], 201);
     }
 

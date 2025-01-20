@@ -49,4 +49,34 @@ class LikeController extends Controller
         return response()->json(['likes_count' => $likesCount], 200);
     }
 
+    public function toggle(Request $request, $postId)
+    {
+        $post = Post::findOrFail($postId);
+        $user = $request->user();
+
+        // Check if user already liked the post
+        $existingLike = Like::where('user_id', $user->id)
+                           ->where('post_id', $postId)
+                           ->first();
+
+        if ($existingLike) {
+            // Unlike
+            $existingLike->delete();
+            return response()->json([
+                'message' => 'Post unliked',
+                'likes_count' => $post->likes()->count()
+            ], 200);
+        } else {
+            // Like
+            Like::create([
+                'user_id' => $user->id,
+                'post_id' => $postId
+            ]);
+            return response()->json([
+                'message' => 'Post liked',
+                'likes_count' => $post->likes()->count()
+            ], 201);
+        }
+    }
+
 }

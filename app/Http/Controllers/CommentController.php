@@ -11,27 +11,30 @@ class CommentController extends Controller
 {
     public function index($postId)
     {
-        $post = Post::findOrFail($postId);
-
-        $comments = $post->comments()->with('user')->latest()->get();
-
-        return response()->json(['comments' => $comments], 200);
+        $comments = Comment::where('post_id', $postId)
+                          ->with('user')
+                          ->orderBy('created_at', 'desc')
+                          ->get();
+                          
+        return response()->json($comments);
     }
 
     public function store(Request $request, $postId)
     {
-        $post = Post::findOrFail($postId);
-
-        $validated = $request->validate([
-            'body' => 'required|string|max:1000',
+        $request->validate([
+            'body' => 'required|string'
         ]);
 
-        $comment = $post->comments()->create([
-            'body' => $validated['body'],
-            'user_id' => Auth::id(),
+        $comment = Comment::create([
+            'body' => $request->body,
+            'user_id' => $request->user()->id,
+            'post_id' => $postId
         ]);
 
-        return response()->json(['comment' => $comment, 'message' => 'Comment added successfully'], 201);
+        // Load the user relationship for the response
+        $comment->load('user');
+
+        return response()->json($comment, 201);
     }
 
     public function update(Request $request, $id)
