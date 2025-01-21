@@ -1,6 +1,6 @@
 document.getElementById('loginForm').addEventListener('submit', async (e) => {
     e.preventDefault();
-    
+
     const email = document.getElementById('loginEmail').value;
     const password = document.getElementById('loginPassword').value;
 
@@ -9,18 +9,14 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Accept': 'application/json'
+                'Accept': 'application/json',
             },
-            body: JSON.stringify({ email, password })
+            body: JSON.stringify({ email, password }),
         });
 
         const data = await response.json();
-        
         if (data.token) {
-            // Store the token
             localStorage.setItem('token', data.token);
-            
-            // Redirect to home page
             window.location.href = '/';
         } else {
             alert('Login failed: ' + (data.message || 'Unknown error'));
@@ -29,4 +25,4 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
         console.error('Login error:', error);
         alert('Login failed. Please try again.');
     }
-}); 
+});

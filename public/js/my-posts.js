@@ -13,20 +13,13 @@ async function loadUserPosts(token) {
         const response = await fetch('http://localhost:8000/api/user/posts', {
             headers: {
                 'Authorization': `Bearer ${token}`,
-                'Accept': 'application/json'
-            }
+                'Accept': 'application/json',
+            },
         });
 
-        if (!response.ok) {
-            throw new Error('Failed to fetch posts');
-        }
-
+        if (!response.ok) throw new Error('Failed to fetch posts');
         const posts = await response.json();
-        if (posts.length === 0) {
-            displayNoPosts();
-        } else {
-            displayUserPosts(posts);
-        }
+        posts.length ? displayUserPosts(posts) : displayNoPosts();
     } catch (error) {
         console.error('Error loading posts:', error);
         displayError('Failed to load posts. Please try again.');
@@ -35,15 +28,15 @@ async function loadUserPosts(token) {
 
 function displayUserPosts(posts) {
     const container = document.getElementById('userPosts');
-    container.innerHTML = posts.map(post => `
+    container.innerHTML = posts
+        .map(
+            (post) => `
         <div class="post-card">
             <div class="post-header">
                 <h2 class="post-title">${post.title}</h2>
                 <span class="post-date">${new Date(post.created_at).toLocaleDateString()}</span>
             </div>
-            ${post.image ? `
-                <img src="${post.image}" alt="Post image" class="post-image">
-            ` : ''}
+            ${post.image ? `<img src="${post.image}" alt="Post image" class="post-image">` : ''}
             <p class="post-body">${post.body}</p>
             <div class="post-footer">
                 <div class="post-actions">
@@ -52,7 +45,9 @@ function displayUserPosts(posts) {
                 </div>
             </div>
         </div>
-    `).join('');
+    `
+        )
+        .join('');
 }
 
 function displayNoPosts() {
@@ -67,17 +62,11 @@ function displayNoPosts() {
 
 function displayError(message) {
     const container = document.getElementById('userPosts');
-    container.innerHTML = `
-        <div class="error-message">
-            <p>${message}</p>
-        </div>
-    `;
+    container.innerHTML = `<div class="error-message"><p>${message}</p></div>`;
 }
 
 async function deletePost(postId) {
-    if (!confirm('Are you sure you want to delete this post?')) {
-        return;
-    }
+    if (!confirm('Are you sure you want to delete this post?')) return;
 
     const token = localStorage.getItem('token');
     try {
@@ -85,15 +74,11 @@ async function deletePost(postId) {
             method: 'DELETE',
             headers: {
                 'Authorization': `Bearer ${token}`,
-                'Accept': 'application/json'
-            }
+                'Accept': 'application/json',
+            },
         });
 
-        if (!response.ok) {
-            throw new Error('Failed to delete post');
-        }
-
-        // Reload posts after deletion
+        if (!response.ok) throw new Error('Failed to delete post');
         await loadUserPosts(token);
         alert('Post deleted successfully!');
     } catch (error) {
@@ -112,10 +97,10 @@ function logout() {
         method: 'POST',
         headers: {
             'Authorization': `Bearer ${token}`,
-            'Accept': 'application/json'
-        }
+            'Accept': 'application/json',
+        },
     }).finally(() => {
         localStorage.removeItem('token');
         window.location.href = '/';
     });
-} 
+}

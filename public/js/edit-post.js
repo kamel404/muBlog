@@ -8,10 +8,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         return;
     }
 
-    // Get post ID from URL
     const urlParams = new URLSearchParams(window.location.search);
     const postId = urlParams.get('id');
-    
     if (!postId) {
         alert('No post specified');
         window.location.href = 'my-posts.html';
@@ -27,28 +25,22 @@ async function loadPost(postId, token) {
         const response = await fetch(`http://localhost:8000/api/posts/${postId}`, {
             headers: {
                 'Authorization': `Bearer ${token}`,
-                'Accept': 'application/json'
-            }
+                'Accept': 'application/json',
+            },
         });
 
-        if (!response.ok) {
-            throw new Error('Failed to fetch post');
-        }
-
+        if (!response.ok) throw new Error('Failed to fetch post');
         const post = await response.json();
-        
-        // Populate form
+
         document.getElementById('title').value = post.title;
         document.getElementById('body').value = post.body;
 
-        // Handle existing image
         if (post.image) {
             currentImage = post.image;
             const preview = document.getElementById('imagePreview');
             preview.innerHTML = `<img src="${post.image}" alt="Post image">`;
             document.getElementById('imageActions').style.display = 'block';
         }
-
     } catch (error) {
         console.error('Error loading post:', error);
         alert('Failed to load post. Please try again.');
@@ -60,12 +52,12 @@ function handleImagePreview(e) {
     const file = e.target.files[0];
     if (file) {
         const reader = new FileReader();
-        reader.onload = function(e) {
+        reader.onload = (e) => {
             const preview = document.getElementById('imagePreview');
             preview.innerHTML = `<img src="${e.target.result}" alt="Preview">`;
             document.getElementById('imageActions').style.display = 'block';
             removeImageFlag = false;
-        }
+        };
         reader.readAsDataURL(file);
     }
 }
@@ -86,31 +78,23 @@ document.getElementById('editPostForm').addEventListener('submit', async (e) => 
 
     formData.append('title', document.getElementById('title').value);
     formData.append('body', document.getElementById('body').value);
-    formData.append('_method', 'PUT'); // For Laravel to handle PUT request
+    formData.append('_method', 'PUT');
 
     const imageFile = document.getElementById('image').files[0];
-    if (imageFile) {
-        formData.append('image', imageFile);
-    }
-
-    if (removeImageFlag) {
-        formData.append('remove_image', '1');
-    }
+    if (imageFile) formData.append('image', imageFile);
+    if (removeImageFlag) formData.append('remove_image', '1');
 
     try {
         const response = await fetch(`http://localhost:8000/api/posts/${postId}`, {
-            method: 'POST', // Using POST with _method=PUT for file upload
+            method: 'POST',
             headers: {
                 'Authorization': `Bearer ${token}`,
-                'Accept': 'application/json'
+                'Accept': 'application/json',
             },
-            body: formData
+            body: formData,
         });
 
-        if (!response.ok) {
-            throw new Error('Failed to update post');
-        }
-
+        if (!response.ok) throw new Error('Failed to update post');
         alert('Post updated successfully!');
         window.location.href = 'my-posts.html';
     } catch (error) {
@@ -125,10 +109,10 @@ function logout() {
         method: 'POST',
         headers: {
             'Authorization': `Bearer ${token}`,
-            'Accept': 'application/json'
-        }
+            'Accept': 'application/json',
+        },
     }).finally(() => {
         localStorage.removeItem('token');
         window.location.href = '/';
     });
-} 
+}

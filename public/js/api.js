@@ -1,67 +1,116 @@
 const API_URL = 'http://localhost:8000/api';
 
-async function fetchPosts() {
-    const token = localStorage.getItem('token');
-    if (!token) return [];
-
-    try {
-        const response = await fetch(`${API_URL}/posts`, {
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Accept': 'application/json'
-            }
-        });
-        if (!response.ok) throw new Error('Failed to fetch posts');
-        return await response.json();
-    } catch (error) {
-        console.error('Error fetching posts:', error);
-        return [];
+// ============= Auth Section =============
+const auth = {
+    login: async (email, password) => {
+        return apiCall('/login', 'POST', { email, password });
+    },
+    register: async (userData) => {
+        return apiCall('/register', 'POST', userData);
+    },
+    logout: async () => {
+        const response = await apiCall('/logout', 'POST');
+        token.remove();
+        return response;
     }
-}
+};
 
-async function login(email, password) {
-    try {
-        const response = await fetch(`${API_URL}/login`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-            },
-            body: JSON.stringify({ email, password })
-        });
-        return await response.json();
-    } catch (error) {
-        console.error('Error logging in:', error);
-        throw error;
+// ============= Posts Section =============
+const posts = {
+    fetchAll: async () => {
+        return apiCall('/posts', 'GET');
+    },
+    fetchOne: async (id) => {
+        return apiCall(`/posts/${id}`, 'GET');
+    },
+    create: async (formData) => {
+        return apiCall('/posts', 'POST', formData, true);
+    },
+    update: async (id, formData) => {
+        formData.append('_method', 'PUT');
+        return apiCall(`/posts/${id}`, 'POST', formData, true);
+    },
+    delete: async (id) => {
+        return apiCall(`/posts/${id}`, 'DELETE');
     }
-}
+};
 
-async function register(name, email, password) {
-    try {
-        const response = await fetch(`${API_URL}/register`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ name, email, password })
-        });
-        return await response.json();
-    } catch (error) {
-        console.error('Error registering:', error);
-        throw error;
+// ============= Comments Section =============
+const comments = {
+    fetch: async (postId) => {
+        return apiCall(`/posts/${postId}/comments`, 'GET');
+    },
+    create: async (postId, body) => {
+        return apiCall(`/posts/${postId}/comments`, 'POST', { body });
     }
-}
+};
 
-function setAuthToken(token) {
-    if (token) {
-        localStorage.setItem('token', token);
+// ============= Likes Section =============
+const likes = {
+    toggle: async (postId) => {
+        return apiCall(`/posts/${postId}/like`, 'POST');
     }
+};
+
+// ============= Profile Section =============
+const profile = {
+    fetch: async () => {
+        return apiCall('/user', 'GET');
+    },
+    update: async (userData) => {
+        return apiCall('/user', 'PUT', userData);
+    }
+};
+
+// ============= Token Management =============
+const token = {
+    set: (token) => {
+        if (token) localStorage.setItem('token', token);
+    },
+    get: () => localStorage.getItem('token'),
+    remove: () => localStorage.removeItem('token')
+};
+
+// ============= Helper Functions =============
+async function apiCall(endpoint, method = 'GET', data = null, isFormData = false) {
+    const headers = {
+        'Accept': 'application/json'
+    };
+
+    if (!isFormData) {
+        headers['Content-Type'] = 'application/json';
+    }
+
+    const authToken = token.get();
+    if (authToken) {
+        headers['Authorization'] = `Bearer ${authToken}`;
+    }
+
+    const config = {
+        method,
+        headers
+    };
+
+    if (data) {
+        config.body = isFormData ? data : JSON.stringify(data);
+    }
+
+    const response = await fetch(`${API_URL}${endpoint}`, config);
+    const responseData = await response.json();
+
+    if (!response.ok) {
+        throw new Error(responseData.message || 'API call failed');
+    }
+
+    return responseData;
 }
 
-function getAuthToken() {
-    return localStorage.getItem('token');
-}
-
-function removeAuthToken() {
-    localStorage.removeItem('token');
-} 
+// Export all sections
+const api = {
+    auth,
+    posts,
+    comments,
+    likes,
+    profile,
+    token
+};
