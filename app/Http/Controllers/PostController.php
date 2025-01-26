@@ -6,29 +6,24 @@ use App\Models\Post;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class PostController extends Controller
 {
+    use AuthorizesRequests;
     public function index()
     {
         $posts = Post::with(['user:id,name,username', 'likes', 'comments'])
                      ->latest()
                      ->get();
-                     
-        return response()->json($posts);
+
+        return view('posts.index', compact('posts'));
     }
 
-    public function show($id)
+    public function create()
     {
-        $post = Post::with(['user:id,name,username', 'likes', 'comments.user:id,name,username'])
-                    ->findOrFail($id);
-
-        // Check if user owns the post or is admin
-        if (auth()->id() !== $post->user_id && !auth()->user()->isAdmin()) {
-            return response()->json(['message' => 'Unauthorized'], 403);
-        }
-
-        return response()->json($post);
+        return view('posts.create');
     }
 
     public function store(Request $request)
@@ -36,94 +31,83 @@ class PostController extends Controller
         $request->validate([
             'title' => 'required|string|max:255',
             'body' => 'required|string',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
+            'image' => 'nullable|image|max:2048'
         ]);
 
-        $data = $request->only(['title', 'body']);
-        
+        $post = new Post($request->only(['title', 'body']));
+        $post->user_id = Auth::id();
+
         if ($request->hasFile('image')) {
-            $image = $request->file('image');
-            $imageName = time() . '.' . $image->getClientOriginalExtension();
-            $image->move(public_path('images/posts'), $imageName);
-            $data['image'] = 'images/posts/' . $imageName;
+            $path = $request->file('image')->store('posts', 'public');
+            $post->image = $path;
         }
 
-        $data['user_id'] = $request->user()->id;
-        $post = Post::create($data);
+        $post->save();
 
-        return response()->json($post, 201);
+        return redirect()->route('posts.show', $post)
+                        ->with('success', 'Post created successfully');
     }
 
-    public function update(Request $request, $id)
+    public function show(Post $post)
     {
-        $post = Post::findOrFail($id);
-        
+        $post->load(['user', 'comments.user', 'likes']);
+        return view('posts.show', compact('post'));
+    }
+
+    public function edit(Post $post)
+    {
+        $this->authorize('update', $post);
+        return view('posts.edit', compact('post'));
+    }
+
+    public function update(Request $request, Post $post)
+    {
+        $this->authorize('update', $post);
+
         $request->validate([
             'title' => 'required|string|max:255',
             'body' => 'required|string',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'remove_image' => 'nullable|boolean'
+            'image' => 'nullable|image|max:2048'
         ]);
 
-        $data = $request->only(['title', 'body']);
+        $post->fill($request->only(['title', 'body']));
 
-        // Handle image update
         if ($request->hasFile('image')) {
-            // Delete old image if exists
-            if ($post->image && file_exists(public_path($post->image))) {
-                unlink(public_path($post->image));
+            // Delete old image
+            if ($post->image) {
+                Storage::disk('public')->delete($post->image);
             }
-            
-            $image = $request->file('image');
-            $imageName = time() . '.' . $image->getClientOriginalExtension();
-            $image->move(public_path('images/posts'), $imageName);
-            $data['image'] = 'images/posts/' . $imageName;
-        }
-        
-        // Handle image removal
-        if ($request->input('remove_image') && $post->image) {
-            if (file_exists(public_path($post->image))) {
-                unlink(public_path($post->image));
-            }
-            $data['image'] = null;
+            $path = $request->file('image')->store('posts', 'public');
+            $post->image = $path;
         }
 
-        $post->update($data);
-        return response()->json($post);
+        $post->save();
+
+        return redirect()->route('posts.show', $post)
+                        ->with('success', 'Post updated successfully');
     }
 
-    public function destroy($id)
+    public function destroy(Post $post)
     {
-        $post = Post::findOrFail($id);
+        $this->authorize('delete', $post);
 
-        if ($post->user_id !== Auth::id() && !Auth::user()->hasRole('Admin')) {
-            return response()->json(['message' => 'Forbidden'], 403);
+        if ($post->image) {
+            Storage::disk('public')->delete($post->image);
         }
 
-        // Delete the associated image if it exists
-        if ($post->image && file_exists(public_path($post->image))) {
-            unlink(public_path($post->image));
-        }
-
-        // Delete associated likes
-        $post->likes()->delete();
-
-        // Delete associated comments
-        $post->comments()->delete();
-
-        // Finally delete the post
         $post->delete();
 
-        return response()->json(['message' => 'Post deleted successfully'], 200);
+        return redirect()->route('posts.index')
+                        ->with('success', 'Post deleted successfully');
     }
 
-    public function userPosts(Request $request)
+    public function userPosts()
     {
-        $posts = Post::where('user_id', $request->user()->id)
-                     ->with(['user:id,name,username', 'likes', 'comments'])
+        $posts = Post::where('user_id', Auth::id())
+                     ->with(['user', 'likes', 'comments'])
                      ->latest()
                      ->get();
-                     
-        return response()->json($posts);
+
+        return view('posts.my-posts', compact('posts'));
     }
 }

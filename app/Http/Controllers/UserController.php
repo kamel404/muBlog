@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
 {
@@ -31,7 +32,7 @@ class UserController extends Controller
     public function profile(Request $request)
     {
         $user = $request->user();
-        
+
         return response()->json([
             'id' => $user->id,
             'name' => $user->name,
@@ -43,33 +44,29 @@ class UserController extends Controller
 
     public function update(Request $request)
     {
-        $request->validate([
+        $user = Auth::user();
+
+        $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => [
-                'required',
-                'string',
-                'email',
-                'max:255',
-                'unique:users,email,'.$request->user()->id,
-                'regex:/^[a-zA-Z0-9._%+-]+@mu\.edu\.lb$/' // Ensure email is from mu.edu.lb
+                'required', 'string', 'email', 'max:255',
+                'unique:users,email,'.$user->id,
+                'regex:/^[a-zA-Z0-9._%+-]+@mu\.edu\.lb$/'
             ],
-        ], [
-            'email.regex' => 'The email must be a valid MU email address (@mu.edu.lb)'
+            'password' => 'nullable|string|min:8|confirmed',
         ]);
 
-        $user = $request->user();
-        $data = $request->only(['name', 'email']);
-        
+        $user->name = $validated['name'];
+        $user->email = $validated['email'];
+
         if ($request->filled('password')) {
-            $data['password'] = bcrypt($request->password);
+            $user->password = Hash::make($validated['password']);
         }
 
-        $user->update($data);
+        $user->save();
 
-        return response()->json([
-            'message' => 'Profile updated successfully',
-            'user' => $user
-        ]);
+        return redirect()->route('profile.edit')
+                        ->with('success', 'Profile updated successfully');
     }
 
     public function updateRole(Request $request, $id)

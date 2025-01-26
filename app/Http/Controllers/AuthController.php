@@ -2,39 +2,39 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\User;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
-     /**
-     * Register a new user.
-     */
+    public function showLoginForm()
+    {
+        return view('auth.login');
+    }
+
+    public function showRegistrationForm()
+    {
+        return view('auth.register');
+    }
+
     public function register(Request $request)
     {
         $request->validate([
             'name' => 'required|string|max:255',
             'username' => 'required|string|max:255|unique:users',
             'email' => [
-                'required',
-                'string',
-                'email',
-                'max:255',
-                'unique:users',
-                'regex:/^[a-zA-Z0-9._%+-]+@mu\.edu\.lb$/' // Ensure email is from mu.edu.lb
+                'required', 'string', 'email', 'max:255', 'unique:users',
+                'regex:/^[a-zA-Z0-9._%+-]+@mu\.edu\.lb$/'
             ],
             'password' => 'required|string|min:8|confirmed',
-        ], [
-            'email.regex' => 'The email must be a valid MU email address (@mu.edu.lb)'
         ]);
 
-        // Check if it's an admin email
         $adminEmail = env('ADMIN_EMAIL', '10121641@mu.edu.lb');
-        $roleId = ($request->email === $adminEmail) ? 2 : 1; // 2 for Admin, 1 for User
+        $roleId = ($request->email === $adminEmail) ? 2 : 1;
 
-        $user = User::create([
+        User::create([
             'name' => $request->name,
             'username' => $request->username,
             'email' => $request->email,
@@ -42,54 +42,33 @@ class AuthController extends Controller
             'role_id' => $roleId,
         ]);
 
-        // Create token
-        $token = $user->createToken('auth_token')->plainTextToken;
-
-        return response()->json([
-            'message' => 'Registration successful',
-            'token' => $token,
-            'user' => $user
-        ], 201);
+        return redirect()->route('login')
+                        ->with('success', 'Registration successful! Please login.');
     }
 
-
-
-    /**
-     * Login an existing user.
-     */
     public function login(Request $request)
     {
-        $request->validate([
+        $credentials = $request->validate([
             'email' => 'required|string|email',
             'password' => 'required|string',
         ]);
 
-        $user = User::where('email', $request->email)->first();
-
-        if (!$user || !Hash::check($request->password, $user->password)) {
-            throw ValidationException::withMessages([
-                'email' => ['The provided credentials are incorrect.'],
-            ]);
+        if (Auth::attempt($credentials)) {
+            $request->session()->regenerate();
+            return redirect()->intended('posts.index');
         }
 
-        $token = $user->createToken('auth_token')->plainTextToken;
-
-        return response()->json([
-            'message' => 'Login successful!',
-            'token' => $token,
-            'user' => $user,
-        ]);
+        return back()->withErrors([
+            'email' => 'Invalid Credentials',
+        ])->withInput($request->except('password'));
     }
 
-    /**
-     * Logout the authenticated user.
-     */
     public function logout(Request $request)
     {
-        $request->user()->currentAccessToken()->delete();
+        Auth::logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
 
-        return response()->json([
-            'message' => 'Logged out successfully!',
-        ]);
+        return redirect('/');
     }
 }
