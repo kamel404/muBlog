@@ -5,8 +5,6 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
@@ -17,7 +15,16 @@ class UserController extends Controller
     public function index()
     {
         $users = User::all();
-        return response()->json($users);
+        return view('users.show', compact('users'));
+    }
+
+    /**
+     * Show edit profile form
+     */
+    public function edit()
+    {
+        $user = Auth::user();
+        return view('user.edit-profile', compact('user'));
     }
 
     /**
@@ -26,7 +33,7 @@ class UserController extends Controller
     public function show($id)
     {
         $user = User::findOrFail($id);
-        return response()->json($user);
+        return view('users.show', compact('user'));
     }
 
     public function profile(Request $request)
@@ -78,10 +85,8 @@ class UserController extends Controller
         $user = User::findOrFail($id);
         $user->update($request->only(['role_id']));
 
-        return response()->json([
-            'message' => 'User role updated successfully!',
-            'user' => $user,
-        ]);
+        return redirect()->back()
+        ->with('success', 'User role updated successfully');
     }
 
     /**
@@ -92,8 +97,7 @@ class UserController extends Controller
         $user = User::findOrFail($id);
         $user->delete();
 
-        return response()->json([
-            'message' => 'User deleted successfully!',
-        ]);
+        return redirect()->route('users.index')
+                        ->with('success', 'User deleted successfully');
     }
 }
