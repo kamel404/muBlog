@@ -30,10 +30,16 @@ class UserController extends Controller
     /**
      * Show a specific user by ID.
      */
-    public function show($id)
+    // public function show($id)
+    // {
+    //     $user = User::findOrFail($id);
+    //     return view('users.show', compact('user'));
+    // }
+
+    public function showProfile()
     {
-        $user = User::findOrFail($id);
-        return view('users.show', compact('user'));
+        $user = Auth::user();
+        return view('user.show', compact('user'));
     }
 
     public function profile(Request $request)

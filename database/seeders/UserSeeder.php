@@ -16,15 +16,6 @@ class UserSeeder extends Seeder
             'username' => 'admin',
             'email' => '10121641@mu.edu.lb',
             'password' => Hash::make('password'),
-            'role_id' => 2, 
-        ]);
-
-        // Optional: Add a regular user
-        User::create([
-            'name' => 'Regular User',
-            'username' => 'user',
-            'email' => '10121642@mu.edu.lb',
-            'password' => Hash::make('password'),
             'role_id' => 1,
         ]);
     }

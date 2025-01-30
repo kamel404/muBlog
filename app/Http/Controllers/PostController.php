@@ -6,7 +6,6 @@ use App\Models\Post;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Gate;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class PostController extends Controller
@@ -16,7 +15,7 @@ class PostController extends Controller
     {
         $posts = Post::with(['user:id,name,username', 'likes', 'comments'])
                      ->latest()
-                     ->get();
+                     ->paginate(9);
 
         return view('posts.index', compact('posts'));
     }
@@ -31,10 +30,11 @@ class PostController extends Controller
         $request->validate([
             'title' => 'required|string|max:255',
             'body' => 'required|string',
-            'image' => 'nullable|image|max:2048'
+            'image' => 'nullable|image|max:2048',
+            'category_id' => 'required|exists:categories,id'
         ]);
 
-        $post = new Post($request->only(['title', 'body']));
+        $post = new Post($request->only(['title', 'body', 'category_id']));
         $post->user_id = Auth::id();
 
         if ($request->hasFile('image')) {
@@ -50,7 +50,7 @@ class PostController extends Controller
 
     public function show(Post $post)
     {
-        $post->load(['user', 'comments.user', 'likes']);
+        $post->load(['user', 'comments.user', 'likes', 'category']);
         return view('posts.show', compact('post'));
     }
 
@@ -67,7 +67,8 @@ class PostController extends Controller
         $request->validate([
             'title' => 'required|string|max:255',
             'body' => 'required|string',
-            'image' => 'nullable|image|max:2048'
+            'image' => 'nullable|image|max:2048',
+            'category_id' => 'required|exists:categories,id'
         ]);
 
         $post->fill($request->only(['title', 'body']));

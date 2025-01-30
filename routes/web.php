@@ -6,6 +6,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\LikeController;
 use App\Http\Controllers\WelcomeController;
+use App\Http\Controllers\CategoryController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [WelcomeController::class, 'index'])->name('home');
@@ -16,6 +17,10 @@ Route::middleware('guest')->group(function () {
     Route::post('/login', [AuthController::class, 'login']);
     Route::get('/register', [AuthController::class, 'showRegistrationForm'])->name('register');
     Route::post('/register', [AuthController::class, 'register']);
+
+    Route::get('/categories', [CategoryController::class, 'index'])->name('categories.index');
+    Route::get('/categories/{category}', [CategoryController::class, 'show'])->name('category.show');
+    Route::post('/categories', [CategoryController::class, 'store'])->name('categories.store');
 });
 
 // Protected routes
@@ -23,7 +28,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
     // Profile routes
-    Route::get('/profile', [UserController::class, 'edit'])->name('profile.edit');
+    Route::get('/profile', [UserController::class, 'showProfile'])->name('profile.show');
+    Route::get('/profile/edit', [UserController::class, 'edit'])->name('profile.edit');
     Route::put('/profile', [UserController::class, 'update'])->name('profile.update');
 
     // Posts routes
