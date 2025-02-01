@@ -18,10 +18,6 @@ Route::middleware('guest')->group(function () {
     Route::post('/login', [AuthController::class, 'login']);
     Route::get('/register', [AuthController::class, 'showRegistrationForm'])->name('register');
     Route::post('/register', [AuthController::class, 'register']);
-
-    Route::get('/categories', [CategoryController::class, 'index'])->name('categories.index');
-    Route::get('/categories/{category}', [CategoryController::class, 'show'])->name('category.show');
-    Route::post('/categories', [CategoryController::class, 'store'])->name('categories.store');
 });
 
 // Protected routes
@@ -62,6 +58,10 @@ Route::middleware('auth')->group(function () {
     Route::middleware('admin')->group(function () {
         Route::put('/manage/users/{user}/role', [ManageController::class, 'updateUserRole'])->name('manage.updateUserRole');
         Route::delete('/manage/users/{user}', [ManageController::class, 'deleteUser'])->name('manage.deleteUser');
+
+        Route::get('/categories', [CategoryController::class, 'index'])->name('categories.index');
+        Route::get('/categories/{category}', [CategoryController::class, 'show'])->name('category.show');
+        Route::post('/categories', [ManageController::class, 'createCategory'])->name('manage.createCategory');
         Route::put('/manage/categories/{category}', [ManageController::class, 'updateCategory'])->name('manage.updateCategory');
         Route::delete('/manage/categories/{category}', [ManageController::class, 'deleteCategory'])->name('manage.deleteCategory');
     });
