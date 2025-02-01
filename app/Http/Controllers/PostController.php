@@ -56,13 +56,13 @@ class PostController extends Controller
 
     public function edit(Post $post)
     {
-        $this->authorize('update', $post);
+        $this->authorize('update-post', $post);
         return view('posts.edit', compact('post'));
     }
 
     public function update(Request $request, Post $post)
     {
-        $this->authorize('update', $post);
+        $this->authorize('update-post', $post);
 
         $request->validate([
             'title' => 'required|string|max:255',
@@ -90,7 +90,7 @@ class PostController extends Controller
 
     public function destroy(Post $post)
     {
-        $this->authorize('delete', $post);
+        $this->authorize('delete-post', $post);
 
         if ($post->image) {
             Storage::disk('public')->delete($post->image);

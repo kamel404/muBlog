@@ -7,6 +7,7 @@ use App\Http\Controllers\CommentController;
 use App\Http\Controllers\LikeController;
 use App\Http\Controllers\WelcomeController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\ManageController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [WelcomeController::class, 'index'])->name('home');
@@ -26,6 +27,7 @@ Route::middleware('guest')->group(function () {
 // Protected routes
 Route::middleware('auth')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+
 
     // Profile routes
     Route::get('/profile', [UserController::class, 'showProfile'])->name('profile.show');
@@ -48,4 +50,21 @@ Route::middleware('auth')->group(function () {
 
     // Likes routes
     Route::post('/posts/{post}/like', [LikeController::class, 'toggle'])->name('posts.like');
+
+
+    // Admin edit user (updateRole and delete)
+    Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
+    Route::get('/users', [UserController::class, 'index'])->name('user.index');
+
+    Route::get('/manage', [ManageController::class, 'index'])->name('manage');
+
+    // Admin-only routes
+    Route::middleware('admin')->group(function () {
+        Route::put('/manage/users/{user}/role', [ManageController::class, 'updateUserRole'])->name('manage.updateUserRole');
+        Route::delete('/manage/users/{user}', [ManageController::class, 'deleteUser'])->name('manage.deleteUser');
+        Route::put('/manage/categories/{category}', [ManageController::class, 'updateCategory'])->name('manage.updateCategory');
+        Route::delete('/manage/categories/{category}', [ManageController::class, 'deleteCategory'])->name('manage.deleteCategory');
+    });
+
 });
+
