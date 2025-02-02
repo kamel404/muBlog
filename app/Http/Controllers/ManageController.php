@@ -132,38 +132,4 @@ class ManageController extends Controller
 
         return redirect()->route('manage')->with('success', 'Category created successfully.');
     }
-
-    // Update a category
-    public function updateCategory(Request $request, Category $category)
-    {
-        if (!auth()->user()->isAdmin()) {
-            return redirect()->route('manage')
-                ->with('error', 'Unauthorized action.');
-        }
-
-        $validated = $request->validate([
-            'name' => 'required|string|max:255|unique:categories,name,' . $category->id,
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
-        ]);
-
-        $data = [
-            'name' => $validated['name'],
-            'slug' => Str::slug($validated['name'])
-        ];
-
-        if ($request->hasFile('image')) {
-            // Delete old image if exists
-            if ($category->image) {
-                Storage::disk('public')->delete($category->image);
-            }
-
-            // Store new image
-            $data['image'] = $request->file('image')->store('categories', 'public');
-        }
-
-        $category->update($data);
-
-        return redirect()->route('manage')
-            ->with('success', 'Category updated successfully.');
-    }
 }

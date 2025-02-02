@@ -74,13 +74,6 @@
                             class="flex items-center justify-between p-3 bg-white rounded-lg hover:bg-green-100 transition-colors">
                             <span class="text-gray-700">{{ $category->name }}</span>
                             <div class="flex items-center space-x-2">
-                                <button onclick="openEditCategoryModal('{{ $category->id }}', '{{ $category->name }}')"
-                                    class="text-blue-400 hover:text-blue-600 p-1 rounded-full hover:bg-blue-50">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                                    </svg>
-                                </button>
                                 <form action="{{ route('manage.deleteCategory', $category) }}" method="POST">
                                     @csrf
                                     @method('DELETE')
@@ -183,11 +176,10 @@
 <div id="categoryModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center p-4">
     <div class="bg-white rounded-xl p-6 w-full max-w-md">
         <h3 class="text-lg font-semibold mb-4" id="categoryModalTitle">Edit Category</h3>
-        <form id="categoryForm" method="POST" enctype="multipart/form-data">
+        <form id="categoryForm" method="POST" enctype="multipart/form-data" action="">
             @csrf
             <input type="hidden" name="_method" id="categoryFormMethod" value="PUT">
-            <input type="text" name="name" id="categoryName" class="w-full p-2 border rounded-md mb-4"
-                placeholder="Category Name" required>
+            <input type="text" name="name" id="categoryName" class="w-full p-2 border rounded-md mb-4" placeholder="Category Name" required>
             <input type="file" name="image" class="w-full p-2 border rounded-md mb-4">
             <div class="flex justify-end space-x-3">
                 <button type="button" onclick="closeCategoryModal()" class="btn-secondary">Cancel</button>
@@ -237,23 +229,21 @@
         history.pushState({ modalOpen: true }, '', window.location.href);
     }
 
-    // Function to open the edit category modal
-    function openEditCategoryModal(categoryId, categoryName) {
-        const modal = document.getElementById('categoryModal');
-        const form = document.getElementById('categoryForm');
-        const title = document.getElementById('categoryModalTitle');
+    function closeRoleModal() {
+        const modal = document.getElementById('roleModal');
+        modal.classList.add('hidden');
+        modal.style.display = 'none';
+    }
 
-        // Set modal title
-        title.textContent = 'Edit Category';
+    function openRoleModal(userId, roleId) {
+        const modal = document.getElementById('roleModal');
+        const form = document.getElementById('roleForm');
 
         // Set form action for editing
-        form.action = `/manage/categories/${categoryId}`;
-
-        // Ensure method spoofing for PUT
-        form.querySelector('[name="_method"]').value = 'PUT';
+        form.action = `/manage/users/${userId}/role`;
 
         // Set form values
-        form.querySelector('[name="name"]').value = categoryName;
+        form.querySelector('[name="role_id"]').value = roleId;
 
         // Display modal
         modal.style.display = 'flex';
@@ -262,6 +252,7 @@
         // Push state to history to track modal open
         history.pushState({ modalOpen: true }, '', window.location.href);
     }
+
 </script>
 
 <style>
