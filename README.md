@@ -6,12 +6,12 @@ MU Blog is a Laravel-based blog platform designed for Maaref University students
 
 ## Features
 
--   User authentication (Login, Register, Password Reset)
--   Role-based access control (Admin & User)
--   CRUD operations for posts
--   Commenting and liking system
--   Profile management with image upload
--   Admin dashboard for managing users and categories
+- User authentication (Login, Register, Password Reset)
+- Role-based access control (Admin & User)
+- CRUD operations for posts
+- Commenting and liking system
+- Profile management with image upload
+- Admin dashboard for managing users and categories
 
 ## Installation & Setup
 
@@ -73,18 +73,18 @@ Password: password
 
 ## Useful Commands
 
--   **Run Seeders Again:** `php artisan db:seed`
--   **Refresh Database (Drops & Reruns Migrations):** `php artisan migrate:fresh --seed`
--   **Cache Configuration:** `php artisan config:cache`
--   **Clear Cache:** `php artisan cache:clear`
+- **Run Seeders Again:** `php artisan db:seed`
+- **Refresh Database (Drops & Reruns Migrations):** `php artisan migrate:fresh --seed`
+- **Cache Configuration:** `php artisan config:cache`
+- **Clear Cache:** `php artisan cache:clear`
 
 ## Technologies Used
 
--   **Laravel** (Backend Framework)
--   **MySQL** (Database)
--   **Blade Templates** (Frontend Rendering)
--   **Eloquent ORM** (Database Management)
--   **Middleware & Policies** (Access Control)
+- **Laravel** (Backend Framework)
+- **MySQL** (Database)
+- **Blade Templates** (Frontend Rendering)
+- **Eloquent ORM** (Database Management)
+- **Middleware & Policies** (Access Control)
 
 ## Entity Relationship Diagram
 
@@ -100,9 +100,9 @@ This is the homepage of the MU Blog project:
 
 ## Future Enhancements
 
--   Real-time notifications for comments and likes
--   AI-based content moderation
--   Improved UI/UX design
+- Real-time notifications for comments and likes
+- AI-based content moderation
+- Improved UI/UX design
 
 ## License
 
