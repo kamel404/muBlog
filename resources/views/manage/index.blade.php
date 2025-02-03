@@ -180,7 +180,6 @@
             @csrf
             <input type="hidden" name="_method" id="categoryFormMethod" value="PUT">
             <input type="text" name="name" id="categoryName" class="w-full p-2 border rounded-md mb-4" placeholder="Category Name" required>
-            <input type="file" name="image" class="w-full p-2 border rounded-md mb-4">
             <div class="flex justify-end space-x-3">
                 <button type="button" onclick="closeCategoryModal()" class="btn-secondary">Cancel</button>
                 <button type="submit" class="btn-primary">Save Changes</button>
@@ -219,7 +218,6 @@
 
         // Clear form values
         form.querySelector('[name="name"]').value = '';
-        form.querySelector('[name="image"]').value = '';
 
         // Display modal
         modal.style.display = 'flex';
