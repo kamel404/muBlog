@@ -15,7 +15,7 @@ class UserController extends Controller
     public function index()
     {
         $users = User::all();
-        return view('users.show', compact('users'));
+        return view('user.show', compact('users'));
     }
 
     /**
@@ -82,18 +82,18 @@ class UserController extends Controller
                         ->with('success', 'Profile updated successfully');
     }
 
-    public function updateRole(Request $request, $id)
-    {
-        $request->validate([
-            'role_id' => 'integer|exists:roles,id',
-        ]);
+    // public function updateRole(Request $request, $id)
+    // {
+    //     $request->validate([
+    //         'role_id' => 'integer|exists:roles,id',
+    //     ]);
 
-        $user = User::findOrFail($id);
-        $user->update($request->only(['role_id']));
+    //     $user = User::findOrFail($id);
+    //     $user->update($request->only(['role_id']));
 
-        return redirect()->back()
-        ->with('success', 'User role updated successfully');
-    }
+    //     return redirect()->back()
+    //     ->with('success', 'User role updated successfully');
+    // }
 
     /**
      * Delete a user (admin access only).
@@ -103,7 +103,7 @@ class UserController extends Controller
         $user = User::findOrFail($id);
         $user->delete();
 
-        return redirect()->route('users.index')
+        return redirect()->route('user.index')
                         ->with('success', 'User deleted successfully');
     }
 }
